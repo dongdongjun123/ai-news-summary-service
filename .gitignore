@@ -141,3 +141,18 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# HuggingFace 모델 캐시 (용량 크므로 제외)
+*.bin
+*.safetensors
+
+# 테스트 결과 파일
+result.txt

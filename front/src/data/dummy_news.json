@@ -2,47 +2,57 @@
   {
     "id": 1,
     "title": "오픈AI, 새 모델 발표… 추론 능력 대폭 강화",
-    "summary": "오픈AI가 최신 언어모델을 공개하며 수학·코딩 분야 성능이 기존 대비 두 배 이상 향상됐다고 밝혔다. 특히 복잡한 추론 문제에서 전문가 수준의 정확도를 보였다.",
-    "category": "IT",
+    "summary": "오픈AI가 최신 언어모델을 공개하며 수학·코딩 분야 성능이 기존 대비 두 배 이상 향상됐다고 밝혔다. 특히 복잡한 추론 문제에서 전문가 수준의 정확도를 보였으며, 기업용 API도 함께 공개됐다.",
+    "category": "IT과학",
     "source": "연합뉴스",
     "published_at": "2025-06-01T09:12:00",
-    "url": "https://example.com/news/1"
+    "url": "https://example.com/news/1",
+    "mention_trend": [1200, 2400, 3100, 2800],
+    "related_keywords": ["ChatGPT", "AI", "추론모델", "OpenAI", "LLM", "API", "GPT-5", "딥러닝"]
   },
   {
     "id": 2,
     "title": "한국은행, 기준금리 동결… 하반기 인하 가능성 시사",
-    "summary": "한국은행 금통위는 기준금리를 현 수준으로 유지하며, 물가 안정세가 지속될 경우 하반기 인하를 검토하겠다고 밝혔다.",
+    "summary": "한국은행 금통위는 기준금리를 현 수준으로 유지하며, 물가 안정세가 지속될 경우 하반기 인하를 검토하겠다고 밝혔다. 시장에서는 연내 1~2회 인하를 기대하고 있다.",
     "category": "경제",
     "source": "KBS",
     "published_at": "2025-06-01T08:30:00",
-    "url": "https://example.com/news/2"
+    "url": "https://example.com/news/2",
+    "mention_trend": [800, 1500, 1200, 1800],
+    "related_keywords": ["기준금리", "한국은행", "금통위", "물가", "인하", "환율", "부동산", "대출"]
   },
   {
     "id": 3,
     "title": "국회, 내년도 예산안 심의 본격 돌입",
-    "summary": "국회 예산결산특별위원회가 내년도 정부 예산안 심의를 시작하며 핵심 쟁점 사안에 대한 여야 공방이 예상된다.",
-    "category": "시사",
+    "summary": "국회 예산결산특별위원회가 내년도 정부 예산안 심의를 시작하며 핵심 쟁점 사안에 대한 여야 공방이 예상된다. 복지·국방 예산 배분이 최대 쟁점으로 부상했다.",
+    "category": "정치",
     "source": "MBC",
     "published_at": "2025-06-01T07:55:00",
-    "url": "https://example.com/news/3"
+    "url": "https://example.com/news/3",
+    "mention_trend": [600, 900, 1100, 950],
+    "related_keywords": ["예산안", "국회", "여야", "예결위", "복지", "국방", "기획재정부", "심의"]
   },
   {
     "id": 4,
     "title": "NASA, 달 기지 건설 계획 구체화… 2030년대 착공 목표",
-    "summary": "NASA가 아르테미스 프로그램의 연장선으로 달 남극 기지 설계안을 공개하며 국제 파트너십을 통한 공동 건설을 추진한다.",
-    "category": "과학",
+    "summary": "NASA가 아르테미스 프로그램의 연장선으로 달 남극 기지 설계안을 공개하며 국제 파트너십을 통한 공동 건설을 추진한다. 한국도 참여 의사를 밝혔다.",
+    "category": "IT과학",
     "source": "YTN",
     "published_at": "2025-06-01T07:20:00",
-    "url": "https://example.com/news/4"
+    "url": "https://example.com/news/4",
+    "mention_trend": [400, 700, 650, 1100],
+    "related_keywords": ["NASA", "달기지", "아르테미스", "우주", "한국항공우주", "달탐사", "국제협력", "2030"]
   },
   {
     "id": 5,
     "title": "삼성전자, 차세대 반도체 공정 전환 가속",
     "summary": "삼성전자가 2나노 공정 전환 일정을 앞당기며 파운드리 경쟁력 강화에 나섰다. TSMC와의 격차 해소가 핵심 과제로 꼽힌다.",
-    "category": "IT",
+    "category": "IT과학",
     "source": "전자신문",
     "published_at": "2025-05-31T18:00:00",
-    "url": "https://example.com/news/5"
+    "url": "https://example.com/news/5",
+    "mention_trend": [2100, 1800, 2400, 2200],
+    "related_keywords": ["삼성전자", "반도체", "TSMC", "파운드리", "2나노", "HBM", "엔비디아", "공정"]
   },
   {
     "id": 6,
@@ -51,24 +61,85 @@
     "category": "경제",
     "source": "매일경제",
     "published_at": "2025-05-31T17:10:00",
-    "url": "https://example.com/news/6"
+    "url": "https://example.com/news/6",
+    "mention_trend": [500, 700, 900, 1100],
+    "related_keywords": ["환율", "원달러", "수출", "제조업", "무역수지", "달러", "외환", "코스피"]
   },
   {
     "id": 7,
     "title": "인류 첫 소행성 샘플 분석… 생명 기원 단서 발견",
     "summary": "일본 탐사선 하야부사2가 채취한 류구 소행성 샘플에서 아미노산과 유기물이 다량 검출돼 생명 기원 연구에 새 전기가 마련됐다.",
-    "category": "과학",
+    "category": "IT과학",
     "source": "사이언스타임스",
     "published_at": "2025-05-31T14:00:00",
-    "url": "https://example.com/news/7"
+    "url": "https://example.com/news/7",
+    "mention_trend": [300, 450, 600, 550],
+    "related_keywords": ["하야부사2", "소행성", "아미노산", "생명기원", "우주탐사", "류구", "유기물", "일본"]
   },
   {
     "id": 8,
     "title": "여야, 민생경제법안 처리 합의… 임시국회 소집",
     "summary": "여야 원내대표가 민생경제 관련 핵심 법안을 임시국회에서 우선 처리하기로 합의하며 정기국회 전 처리 가능성이 높아졌다.",
-    "category": "시사",
+    "category": "정치",
     "source": "한겨레",
     "published_at": "2025-05-31T11:30:00",
-    "url": "https://example.com/news/8"
+    "url": "https://example.com/news/8",
+    "mention_trend": [700, 800, 750, 900],
+    "related_keywords": ["여야합의", "임시국회", "민생법안", "원내대표", "법안처리", "국회", "여당", "야당"]
+  },
+  {
+    "id": 9,
+    "title": "폭염 속 전국 냉방용품 판매 급증… 에너지 수요 우려",
+    "summary": "이른 폭염으로 에어컨·선풍기 판매가 전년 동기 대비 40% 급증했다. 한전은 여름철 전력 수요 급증에 대비해 비상 공급 체계를 가동한다고 밝혔다.",
+    "category": "사회",
+    "source": "뉴스1",
+    "published_at": "2025-05-31T10:00:00",
+    "url": "https://example.com/news/9",
+    "mention_trend": [200, 400, 900, 1500],
+    "related_keywords": ["폭염", "에어컨", "전력수요", "한전", "여름", "냉방", "에너지", "기후"]
+  },
+  {
+    "id": 10,
+    "title": "BTS 슈가, 솔로 월드투어 공식 발표",
+    "summary": "BTS 멤버 슈가가 군 복무 후 첫 솔로 활동으로 월드투어를 공식 발표했다. 아시아·북미·유럽 총 20개 도시에서 공연이 예정돼 있다.",
+    "category": "문화",
+    "source": "스타뉴스",
+    "published_at": "2025-05-30T16:00:00",
+    "url": "https://example.com/news/10",
+    "mention_trend": [1000, 1200, 800, 3200],
+    "related_keywords": ["BTS", "슈가", "월드투어", "케이팝", "콘서트", "하이브", "솔로", "컴백"]
+  },
+  {
+    "id": 11,
+    "title": "손흥민, 시즌 15골 달성… 토트넘 유럽 진출권 확보",
+    "summary": "손흥민이 프리미어리그 최종전에서 결승골을 터뜨리며 시즌 15골을 달성했다. 이 골로 토트넘은 유로파리그 진출권을 확보했다.",
+    "category": "스포츠",
+    "source": "스포츠서울",
+    "published_at": "2025-05-30T08:00:00",
+    "url": "https://example.com/news/11",
+    "mention_trend": [1500, 1300, 1100, 2500],
+    "related_keywords": ["손흥민", "토트넘", "프리미어리그", "유로파", "골", "EPL", "축구", "한국선수"]
+  },
+  {
+    "id": 12,
+    "title": "G7 정상회의, AI 규제 국제 공조 합의",
+    "summary": "G7 정상들이 인공지능 기술 규제를 위한 국제 공조 프레임워크에 합의했다. 투명성 확보와 안전 기준 마련이 핵심 내용이다.",
+    "category": "국제",
+    "source": "연합뉴스",
+    "published_at": "2025-05-29T20:00:00",
+    "url": "https://example.com/news/12",
+    "mention_trend": [600, 800, 1000, 1200],
+    "related_keywords": ["G7", "AI규제", "국제공조", "정상회의", "인공지능", "EU", "빅테크", "안전기준"]
+  },
+  {
+    "id": 13,
+    "title": "제주 지역 관광객 500만 돌파… 외국인 비중 역대 최고",
+    "summary": "올해 제주를 찾은 관광객이 500만 명을 넘어섰으며 외국인 비중이 역대 최고치를 기록했다. 중국·일본 관광객 회복세가 주효했다는 분석이다.",
+    "category": "지역",
+    "source": "제주일보",
+    "published_at": "2025-05-29T14:00:00",
+    "url": "https://example.com/news/13",
+    "mention_trend": [300, 400, 500, 700],
+    "related_keywords": ["제주", "관광", "외국인", "중국관광객", "일본관광객", "지역경제", "여행", "제주공항"]
   }
 ]

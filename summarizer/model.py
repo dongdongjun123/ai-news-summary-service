@@ -1,3 +1,4 @@
+from typing import Optional
 from transformers import PreTrainedTokenizerFast, BartForConditionalGeneration
 import torch
 
@@ -15,7 +16,7 @@ def load_model():
     print("모델 로딩 완료!")
 
 
-def summarize(text: str) -> str | None:
+def summarize(text: str) -> Optional[str]:
     try:
         raw_input_ids = tokenizer.encode(text, max_length=MAX_TOKEN_LENGTH, truncation=True)
         input_ids = [tokenizer.bos_token_id] + raw_input_ids + [tokenizer.eos_token_id]

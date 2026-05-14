@@ -1,3 +1,4 @@
+from typing import List, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
@@ -19,16 +20,16 @@ class Article(BaseModel):
 
 
 class SummarizeRequest(BaseModel):
-    articles: list[Article]
+    articles: List[Article]
 
 
 class SummaryResult(BaseModel):
     id: int
-    summary: str | None
+    summary: Optional[str]
 
 
 class SummarizeResponse(BaseModel):
-    summaries: list[SummaryResult]
+    summaries: List[SummaryResult]
 
 
 @app.post("/summarize/batch", response_model=SummarizeResponse)

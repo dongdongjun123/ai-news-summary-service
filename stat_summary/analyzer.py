@@ -8,6 +8,7 @@ from stat_summary.keyword_extractor import (
 )
 from stat_summary.related_terms import extract_related_terms
 from stat_summary.stat_calculator import count_sentences, count_words
+from stat_summary.trend_analyzer import build_mention_trend
 
 
 def analyze_article_statistics(
@@ -17,7 +18,7 @@ def analyze_article_statistics(
     """
     AI2 통계 분석 최종 진입 함수.
 
-    현재 Issue에서는 연관어 related_terms까지 계산한다.
+    현재 Issue에서는 mention_trend까지 계산한다.
     """
     if corpus_articles is None:
         corpus_articles = []
@@ -28,7 +29,14 @@ def analyze_article_statistics(
     keyword_count = count_keyword_occurrences(content, keywords)
     corpus_keyword_count = count_keywords_in_corpus(corpus_articles, keywords)
     core_keyword = select_core_keyword(keyword_count)
+    core_word = core_keyword.get("word", "")
+
     related_terms = extract_related_terms(content, keywords, top_n=6)
+    mention_trend = build_mention_trend(
+        corpus_articles=corpus_articles,
+        core_keyword=core_word,
+        recent_n=4,
+    )
 
     return {
         "article_id": article.get("article_id") or article.get("id"),
@@ -39,7 +47,7 @@ def analyze_article_statistics(
             "keyword_count": keyword_count,
             "corpus_keyword_count": corpus_keyword_count,
         },
-        "mention_trend": [],
+        "mention_trend": mention_trend,
         "core_keyword": core_keyword,
         "related_terms": related_terms,
         "stat_analysis": "",
@@ -47,5 +55,6 @@ def analyze_article_statistics(
         "model_info": {
             "keyword_model": "frequency_based",
             "related_terms_model": "co_occurrence_based",
+            "trend_model": "monthly_count_based",
         },
     }

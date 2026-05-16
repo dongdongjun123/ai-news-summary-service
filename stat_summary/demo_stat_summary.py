@@ -11,7 +11,8 @@ sample_articles = [
         "published_at": "2025.02.01",
         "content": (
             "오픈AI가 최신 언어모델을 공개했다. "
-            "오픈AI는 ChatGPT와 GPT 모델의 추론 능력 강화에 집중하고 있다."
+            "오픈AI는 ChatGPT와 GPT 모델의 추론 능력 강화에 집중하고 있다. "
+            "기업용 API 공개와 함께 AI 서비스 시장의 경쟁도 심화되고 있다."
         ),
     },
     {
@@ -21,7 +22,7 @@ sample_articles = [
         "published_at": "2025.03.03",
         "content": (
             "ChatGPT를 활용한 AI 서비스가 빠르게 늘어나고 있다. "
-            "오픈AI API를 사용하는 기업도 증가하고 있다."
+            "오픈AI API를 사용하는 기업도 증가하면서 생성형 AI 생태계가 확대되고 있다."
         ),
     },
     {
@@ -41,7 +42,8 @@ sample_articles = [
         "published_at": "2025.05.15",
         "content": (
             "오픈AI API 생태계가 확장되고 있다. "
-            "ChatGPT와 오픈AI 관련 서비스가 기업 시장에서 빠르게 확산되고 있다."
+            "ChatGPT와 오픈AI 관련 서비스가 기업 시장에서 빠르게 확산되고 있다. "
+            "AI 서비스 경쟁이 강화되면서 추론 성능과 비용 효율성이 주요 이슈가 되고 있다."
         ),
     },
 ]

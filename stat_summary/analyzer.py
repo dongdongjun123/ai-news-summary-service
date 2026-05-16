@@ -1,5 +1,10 @@
 from typing import Any, Dict, List, Optional
 
+from stat_summary.keyword_extractor import (
+    count_keyword_occurrences,
+    extract_keywords,
+    select_core_keyword,
+)
 from stat_summary.stat_calculator import count_sentences, count_words
 
 
@@ -10,13 +15,17 @@ def analyze_article_statistics(
     """
     AI2 통계 분석 최종 진입 함수.
 
-    현재 Issue에서는 word_count, sentence_count를 계산한다.
-    이후 Issue에서 키워드, 연관어, 언급량 추이 기능을 순차적으로 추가한다.
+    현재 Issue에서는 word_count, sentence_count,
+    keyword_count, core_keyword를 계산한다.
     """
     if corpus_articles is None:
         corpus_articles = []
 
     content = article.get("content", "")
+
+    keywords = extract_keywords(content, top_n=5)
+    keyword_count = count_keyword_occurrences(content, keywords)
+    core_keyword = select_core_keyword(keyword_count)
 
     return {
         "article_id": article.get("article_id") or article.get("id"),
@@ -24,19 +33,16 @@ def analyze_article_statistics(
         "statistics": {
             "word_count": count_words(content),
             "sentence_count": count_sentences(content),
-            "keyword_count": {},
+            "keyword_count": keyword_count,
             "corpus_keyword_count": {},
         },
         "mention_trend": [],
-        "core_keyword": {
-            "word": "",
-            "score": 0,
-        },
+        "core_keyword": core_keyword,
         "related_terms": [],
         "stat_analysis": "",
         "ai_insights": [],
         "model_info": {
-            "keyword_model": "not_applied_yet",
+            "keyword_model": "frequency_based",
             "related_terms_model": "not_applied_yet",
         },
     }

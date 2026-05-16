@@ -6,6 +6,7 @@ from stat_summary.keyword_extractor import (
     extract_keywords,
     select_core_keyword,
 )
+from stat_summary.related_terms import extract_related_terms
 from stat_summary.stat_calculator import count_sentences, count_words
 
 
@@ -16,8 +17,7 @@ def analyze_article_statistics(
     """
     AI2 통계 분석 최종 진입 함수.
 
-    현재 Issue에서는 선택 기사 기준 keyword_count와
-    전체 기사 기준 corpus_keyword_count를 함께 계산한다.
+    현재 Issue에서는 연관어 related_terms까지 계산한다.
     """
     if corpus_articles is None:
         corpus_articles = []
@@ -28,6 +28,7 @@ def analyze_article_statistics(
     keyword_count = count_keyword_occurrences(content, keywords)
     corpus_keyword_count = count_keywords_in_corpus(corpus_articles, keywords)
     core_keyword = select_core_keyword(keyword_count)
+    related_terms = extract_related_terms(content, keywords, top_n=6)
 
     return {
         "article_id": article.get("article_id") or article.get("id"),
@@ -40,11 +41,11 @@ def analyze_article_statistics(
         },
         "mention_trend": [],
         "core_keyword": core_keyword,
-        "related_terms": [],
+        "related_terms": related_terms,
         "stat_analysis": "",
         "ai_insights": [],
         "model_info": {
             "keyword_model": "frequency_based",
-            "related_terms_model": "not_applied_yet",
+            "related_terms_model": "co_occurrence_based",
         },
     }

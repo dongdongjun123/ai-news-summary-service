@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 
+from stat_summary.corpus_analyzer import count_keywords_in_corpus
 from stat_summary.keyword_extractor import (
     count_keyword_occurrences,
     extract_keywords,
@@ -15,8 +16,8 @@ def analyze_article_statistics(
     """
     AI2 통계 분석 최종 진입 함수.
 
-    현재 Issue에서는 word_count, sentence_count,
-    keyword_count, core_keyword를 계산한다.
+    현재 Issue에서는 선택 기사 기준 keyword_count와
+    전체 기사 기준 corpus_keyword_count를 함께 계산한다.
     """
     if corpus_articles is None:
         corpus_articles = []
@@ -25,6 +26,7 @@ def analyze_article_statistics(
 
     keywords = extract_keywords(content, top_n=5)
     keyword_count = count_keyword_occurrences(content, keywords)
+    corpus_keyword_count = count_keywords_in_corpus(corpus_articles, keywords)
     core_keyword = select_core_keyword(keyword_count)
 
     return {
@@ -34,7 +36,7 @@ def analyze_article_statistics(
             "word_count": count_words(content),
             "sentence_count": count_sentences(content),
             "keyword_count": keyword_count,
-            "corpus_keyword_count": {},
+            "corpus_keyword_count": corpus_keyword_count,
         },
         "mention_trend": [],
         "core_keyword": core_keyword,

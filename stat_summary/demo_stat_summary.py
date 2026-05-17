@@ -55,9 +55,11 @@ def main():
     result = analyze_article_statistics(
         article=selected_article,
         corpus_articles=sample_articles,
+        top_n=5,
+        recent_n=4,
     )
 
-    print("=== 최종 JSON 결과 ===")
+    print("=== Stat Summary 최종 JSON 결과 ===")
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

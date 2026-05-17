@@ -18,29 +18,46 @@ from stat_summary.trend_analyzer import build_mention_trend
 def analyze_article_statistics(
     article: Dict[str, Any],
     corpus_articles: Optional[List[Dict[str, Any]]] = None,
+    top_n: int = 5,
+    recent_n: int = 4,
 ) -> Dict[str, Any]:
     """
     AI2 통계 분석 최종 진입 함수.
 
-    현재 Issue에서는 stat_analysis와 ai_insights까지 계산한다.
+    백엔드는 DB에서 선택 기사와 전체 기사 목록을 가져온 뒤
+    이 함수 하나를 호출하면 된다.
     """
     if corpus_articles is None:
         corpus_articles = []
 
+    article_id = article.get("article_id") or article.get("id")
+    title = article.get("title", "")
     content = article.get("content", "")
 
-    keywords = extract_keywords(content, top_n=5)
+    word_count = count_words(content)
+    sentence_count = count_sentences(content)
+
+    keywords = extract_keywords(content, top_n=top_n)
     keyword_count = count_keyword_occurrences(content, keywords)
-    corpus_keyword_count = count_keywords_in_corpus(corpus_articles, keywords)
+
+    corpus_keyword_count = count_keywords_in_corpus(
+        corpus_articles=corpus_articles,
+        keywords=keywords,
+    )
+
     core_keyword = select_core_keyword(keyword_count)
     core_word = core_keyword.get("word", "")
 
-    related_terms = extract_related_terms(content, keywords, top_n=6)
+    related_terms = extract_related_terms(
+        content=content,
+        keywords=keywords,
+        top_n=6,
+    )
 
     mention_trend = build_mention_trend(
         corpus_articles=corpus_articles,
         core_keyword=core_word,
-        recent_n=4,
+        recent_n=recent_n,
     )
 
     stat_analysis = generate_stat_analysis(
@@ -56,11 +73,11 @@ def analyze_article_statistics(
     )
 
     return {
-        "article_id": article.get("article_id") or article.get("id"),
-        "title": article.get("title", ""),
+        "article_id": article_id,
+        "title": title,
         "statistics": {
-            "word_count": count_words(content),
-            "sentence_count": count_sentences(content),
+            "word_count": word_count,
+            "sentence_count": sentence_count,
             "keyword_count": keyword_count,
             "corpus_keyword_count": corpus_keyword_count,
         },

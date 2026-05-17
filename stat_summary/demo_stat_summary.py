@@ -1,3 +1,4 @@
+import argparse
 import json
 
 from stat_summary.analyzer import analyze_article_statistics
@@ -50,6 +51,12 @@ sample_articles = [
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--llm", action="store_true", help="Qwen 기반 키워드 추출 사용")
+    parser.add_argument("--keybert", action="store_true", help="KeyBERT 기반 연관어 추출 사용")
+
+    args = parser.parse_args()
+
     selected_article = sample_articles[0]
 
     result = analyze_article_statistics(
@@ -57,6 +64,8 @@ def main():
         corpus_articles=sample_articles,
         top_n=5,
         recent_n=4,
+        use_llm=args.llm,
+        use_keybert=args.keybert,
     )
 
     print("=== Stat Summary 최종 JSON 결과 ===")

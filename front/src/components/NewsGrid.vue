@@ -1,11 +1,34 @@
 <script setup>
 import { ref } from 'vue'
 import { useNewsStore } from '@/stores/news'
+import { fetchNewsById } from '@/api/newsApi'
 import NewsCard from './NewsCard.vue'
 import NewsModal from './NewsModal.vue'
 
 const store = useNewsStore()
 const selectedNews = ref(null)
+
+async function openNewsModal(item) {
+  // 목록에는 content / mention_trend / related_keywords 가 없으므로
+  // 모달을 열 때 상세 API 로 보강해서 보여준다.
+  try {
+    const detail = await fetchNewsById(item.id)
+    selectedNews.value = {
+      ...item,
+      ...detail,
+      mention_trend: detail.mention_trend ?? [],
+      related_keywords: detail.related_keywords ?? [],
+    }
+  } catch (e) {
+    console.error('뉴스 상세 조회 실패:', e)
+    // 실패 시 최소 정보로라도 모달 띄움 (차트/연관어는 빈 값으로 안전 처리)
+    selectedNews.value = {
+      ...item,
+      mention_trend: [],
+      related_keywords: [],
+    }
+  }
+}
 </script>
 
 <template>
@@ -33,7 +56,7 @@ const selectedNews = ref(null)
         v-for="item in store.newsList"
         :key="item.id"
         :news="item"
-        @click="selectedNews = item"
+        @click="openNewsModal(item)"
       />
     </div>
 

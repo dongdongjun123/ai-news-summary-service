@@ -106,65 +106,135 @@
 
 ---
 
-## 4. API 설계 (제안, 프레임워크 무관)
+## 4. API 설계 (현재 프론트 코드 기준)
 
-프론트가 "카테고리별 최신 뉴스 목록 + 상세 보기" 위주라고 가정.
+> 프론트 코드를 직접 확인한 결과 다음 사실이 명확해짐.  
+> 백엔드 API 는 **프론트가 실제로 호출하는 형태에 맞춤**.
 
-### 4-1. 엔드포인트
+### 4-1. 프론트가 실제로 부르는 API (`front/src/api/newsApi.js`)
+
+| 함수 | 백엔드 경로 | 호출 시점 |
+|---|---|---|
+| `fetchNews()` | `GET /api/news` | (직접 호출 안 됨) |
+| `fetchNewsByCategory(category)` | `GET /api/news?category=...` | `useNewsStore.loadNews()` → 페이지 로드/탭 변경/새로고침 |
+| `fetchNewsById(id)` | `GET /api/news/{id}` | 모달 열 때 (※ 현 코드에는 호출이 없음 — §4-6 참조) |
+
+### 4-2. 프론트 ↔ 백엔드 필드 매핑
+
+| 프론트 필드 | 출처(DB) | 비고 |
+|---|---|---|
+| `id` | `news_articles.news_id` | DB는 `VARCHAR(50)`. 프론트 dummy 에선 number 였지만 string 그대로 사용 가능 (NewsCard 의 `:key`/클릭 핸들러 모두 type-agnostic) |
+| `title` | `title` | 그대로 |
+| `summary` | `summary` | 비어있으면(=NULL) **상세 조회 시 온디맨드 생성** (§8-1) |
+| `category` | `main_category` | §4-3 정규화 참조 |
+| `source` | `press` | 컬럼명 다름 → 응답에서 매핑 |
+| `published_at` | `date` | DB 는 `DATE` 만 보관. NewsCard 의 `formatDate()` 는 `new Date("2026-04-01")` 로도 잘 파싱되므로 **그대로 문자열 전달 가능** |
+| `content` | `content` | 상세 응답에서만 사용 |
+| `url` | (없음) | 원문 URL 미보유. 응답에서 `null` 로 보냄 (프론트는 표시 안 함) |
+| `thumbnail` | (없음) | 미보유. `null`. NewsCard 는 `v-if="news.thumbnail"` 으로 옵셔널 처리되어 안전 |
+| `mention_trend` | `stat_summary` 결과 | 상세 응답에서만, 4주(=`recent_n=4`) |
+| `related_keywords` | `stat_summary` 결과 | 상세 응답에서만, 8개 내외 |
+
+### 4-3. 카테고리 정규화
+
+프론트 카테고리 (NavBar 탭 / `useNewsStore.CATEGORIES`):
+```
+['전체', '정치', '경제', '사회', '문화', '국제', '지역', '스포츠', 'IT과학']
+```
+
+DB `categories(name)` 8개에는 `전체` 없음. 또한 IT 카테고리 표기는 DB/크롤러 측에서 `IT_과학` 형태로 들어갔을 가능성이 있음.
+
+- 백엔드 처리
+  - `?category=전체` 또는 파라미터 자체가 없으면 → 필터 없이 전체 반환
+  - `?category=IT과학` 들어오면 DB 값과 정합 매핑 (`IT과학` ↔ `IT_과학`)
+  - 그 외(`정치`/`경제`/...)는 그대로 일치
+- DB 측에서 카테고리명을 실제로 어떤 문자열로 저장했는지 한 번만 확인:
+  ```sql
+  SELECT * FROM public.categories;
+  SELECT DISTINCT main_category FROM public.news_articles;
+  ```
+
+### 4-4. 엔드포인트 (확정)
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| `GET` | `/api/categories` | 카테고리 전체 목록 (네비게이션/탭 용) |
-| `GET` | `/api/news` | 뉴스 목록. 쿼리: `category`, `date_from`, `date_to`, `q`(검색), `page`, `size` |
-| `GET` | `/api/news/{news_id}` | 단일 기사 상세 (본문 + 요약) |
-| `GET` | `/api/news/{news_id}/summary` | 요약만 조회 (선택) |
-| `POST` | `/api/news/{news_id}/summary` | 요약 생성/재생성 (관리자용, 인증 별도) |
-| `GET` | `/api/stats` | 카테고리/날짜별 건수 (홈 통계 카드용) |
+| `GET` | `/health` | 헬스체크 |
+| `GET` | `/api/categories` | 카테고리 목록 (백엔드 단일 진실원) |
+| `GET` | `/api/news?category=...` | 뉴스 목록 — **단순 배열** (페이지네이션 없음) |
+| `GET` | `/api/news/{id}` | 상세 — content + summary(온디맨드) + `mention_trend` + `related_keywords` 까지 한 객체로 통합 |
+| `POST` | `/api/news/{id}/summary` | 요약 강제 (재)생성. 운영/디버그용 |
 
-### 4-2. 응답 예시
+> **삭제된 항목 (현재 프론트가 안 쓰는 것)**
+> - `q` (검색), `date_from`/`date_to` (날짜 필터) — UI 없음
+> - `page` / `size` — 페이지네이션 UI 없음 (목록은 단순 배열로 응답)
+> - `GET /api/news/{id}/summary` — 별도 요약 조회 UI 없음 (`/api/news/{id}` 응답에 포함됨)
+> - `GET /api/stats` — `StatCards.vue` 가 `store.totalCount` 로 자체 계산 (서버 통계 API 불필요)
+> - `GET /api/news/{id}/stats` — `mention_trend/related_keywords` 가 상세 응답에 통합되어 별도 호출 불필요
 
-`GET /api/news?category=정치&page=1&size=20`
+### 4-5. 응답 예시
+
+`GET /api/news?category=정치`
 
 ```json
-{
-  "page": 1,
-  "size": 20,
-  "total": 1234,
-  "items": [
-    {
-      "news_id": "01100611.20260401122708001",
-      "date": "2026-04-01",
-      "press": "서울신문",
-      "title": "민주, ‘돈 봉투 살포’ 김관영 제명…",
-      "main_category": "정치",
-      "has_summary": false
-    }
-  ]
-}
+[
+  {
+    "id": "01100611.20260401122708001",
+    "title": "민주, ‘돈 봉투 살포’ 김관영 제명…",
+    "summary": null,
+    "category": "정치",
+    "source": "서울신문",
+    "published_at": "2026-04-01",
+    "url": null,
+    "thumbnail": null
+  }
+]
 ```
 
-`GET /api/news/{news_id}`
+`GET /api/news/{id}`
 
 ```json
 {
-  "news_id": "01100611.20260401122708001",
-  "date": "2026-04-01",
-  "press": "서울신문",
+  "id": "01100611.20260401122708001",
   "title": "...",
-  "content": "...",
-  "main_category": "정치",
-  "summary": null
+  "summary": "AI가 생성한 한 단락 요약...",
+  "content": "본문 풀텍스트...",
+  "category": "정치",
+  "source": "서울신문",
+  "published_at": "2026-04-01",
+  "url": null,
+  "thumbnail": null,
+  "mention_trend": [80, 120, 90, 160],
+  "related_keywords": ["김관영", "민주당", "전북지사", "돈봉투", "경선", "제명", "윤리감찰", "지방선거"]
 }
 ```
 
-### 4-3. 쿼리 매핑
+`GET /api/categories`
 
-- `category` → `WHERE main_category = $1`
-- `date_from` / `date_to` → `WHERE date BETWEEN $a AND $b`
-- `page`, `size` → `LIMIT/OFFSET` (정렬 기본 `date DESC, news_id DESC`)
-- `q` (검색) — 1단계는 `title ILIKE '%' || $q || '%'` 정도로 시작, 데이터 커지면 GIN/pg_trgm 으로 업그레이드
+```json
+["정치", "경제", "사회", "문화", "국제", "지역", "스포츠", "IT과학"]
+```
+> `전체` 는 프론트 측에서만 다루는 UI 토큰이므로 응답에 넣지 않음.
 
-> `idx_news_category_date` 가 이미 있어서 카테고리 + 날짜 범위 쿼리는 잘 받아줍니다.
+### 4-6. 프론트가 살짝 바꿔야 하는 부분 (코드 작업 단계에서 함께 진행)
+
+> 현재 프론트는 더미 JSON 기준이라 **목록 한 번 받으면 모달까지 그 객체로 다 그림**.  
+> 백엔드 연결 시 상세는 별도 호출이 자연스러우므로 아래 3가지가 필요함.
+
+1. **모달 열 때 상세 조회** — `NewsGrid.vue` 의 `@click="selectedNews = item"` 을 `await fetchNewsById(item.id)` 결과로 교체  
+   (목록 응답에는 `summary/content/mention_trend/related_keywords` 가 없음)
+2. **`newsApi.js` 의 더미 import 제거** → 주석 처리된 `BASE_URL` + `fetch(...)` 활성화
+3. **카테고리 파라미터 처리** — `'전체'` 일 때 쿼리에 안 붙이도록 (이미 그렇게 되어 있음, 확인만)
+
+추가로 미사용 정리(선택):
+- `stores/counter.js` 등 안 쓰는 파일
+- `data/dummy_news.json` (백엔드 붙으면 불필요)
+
+### 4-7. 쿼리/정렬 정책
+
+- `category` → `WHERE main_category = $1` (`전체`는 필터 없음)
+- 정렬 기본: `date DESC, news_id DESC`
+- 인덱스 `idx_news_category_date` 활용 자동 적용됨
+- 페이지네이션 미적용 — 한 카테고리 데이터 양이 많아지면 그때 도입 (기본 limit 만 걸어두는 것은 §9 참고)
 
 ---
 
@@ -283,39 +353,45 @@ ai-news-summary-service/
 | `stat_summary/` | 본문/코퍼스 → 분석 카드용 데이터 | DB에 저장 X (필요 시 캐시) |
 | backend | DB ↔ HTTP API, 위 두 모듈 호출 | — |
 
-### 8-4. API 매핑 (§4 보강)
+### 8-4. 엔드포인트별 내부 처리
 
 | 엔드포인트 | 내부 처리 |
 |---|---|
-| `GET /api/news/{news_id}` | DB row 반환. `summary` 가 비어 있고 정책이 "온디맨드" 면 그 자리에서 생성 후 저장 |
-| `POST /api/news/{news_id}/summary` | 강제 (재)생성. 관리자/디버그용 |
-| `GET /api/news/{news_id}/stats` | 기사 + 코퍼스 조회 → `analyze_article_statistics(...)` → JSON 응답 (프론트 `StatCards.vue` 에 매핑) |
+| `GET /api/news` | DB 조회 (`main_category` 필터 + 정렬 + limit) → 목록 필드만 매핑 |
+| `GET /api/news/{id}` | 1) DB row 로드 → 2) `summary` 가 NULL 이면 summarizer(:8001) 호출 후 `news_articles.summary` 업데이트 → 3) 같은 카테고리 코퍼스 로드 → 4) `analyze_article_statistics(use_llm=False, use_keybert=False, recent_n=4, top_n=8)` 호출 → 5) 응답 객체에 `mention_trend`/`related_keywords` 까지 합쳐 반환 |
+| `POST /api/news/{id}/summary` | 강제 (재)생성. 운영/디버그용 |
+
+> `stat_summary` 호출 부담을 줄이기 위해 응답에는 필요한 두 필드(`mention_trend`, `related_keywords`)만 추려서 전달. 내부 dict 의 나머지(`core_keyword`, `ai_insights` 등)는 일단 보류하고 추후 필요 시 노출.
 
 ---
 
 ## 9. 진행 순서 제안
 
-1. **사용자 확인 사항**
+1. **사용자 확인 사항 (전부 확정)**
    - ✅ 백엔드 스택: **FastAPI**
    - ✅ 요약 채우기 정책: **요청 시 생성 (온디맨드)**
    - ✅ `categories` 테이블 구조 확인 — `name VARCHAR(20)` 단일 컬럼
    - ✅ 요약 서비스 형태: **A. 별도 서비스** (backend 8000, summarizer 8001)
-   - ✅ `stat_summary` 옵션: `use_llm=False`, `use_keybert=False` (rule-based 우선, 안정화 후 KeyBERT 확장)
+   - ✅ `stat_summary` 옵션: `use_llm=False`, `use_keybert=False`
 2. **백엔드 골격 (포트 8000)**
-   - `backend/` 폴더 생성 + 의존성 설치 + `.env` 로 DB / summarizer URL 설정
-   - `/health`, `/api/categories` 부터 동작 확인
-3. **읽기 API**
-   - `/api/news` 목록 (필터/페이지네이션)
-   - `/api/news/{news_id}` 상세 — `summary` 온디맨드 생성 분기 포함
+   - `backend/` 폴더 생성 + 의존성 설치 + `.env` (DB / `SUMMARIZER_URL`)
+   - `/health`, `/api/categories` 동작 확인
+3. **목록 API**
+   - `GET /api/news?category=...` (단순 배열, `date DESC` 정렬, 기본 limit)
+   - 카테고리 정규화 (`전체` 무필터, `IT과학` ↔ `IT_과학`)
 4. **요약 클라이언트**
-   - `summarizer (8001)` 호출 클라이언트 (`httpx` 권장)
-   - timeout / 실패 처리 / 재시도 정책 정의
-5. **분석 API**
-   - `/api/news/{news_id}/stats` — `stat_summary.analyzer` 직접 import 호출
-   - 코퍼스 조회 쿼리 정의 (예: 같은 카테고리 최근 90일)
-6. **프론트 연동**
-   - 기존 `front/src/api/newsApi.js` 를 백엔드 엔드포인트에 맞춰 정리
-   - `StatCards.vue` 가 `/api/news/{id}/stats` 응답 구조에 맞도록 매핑
+   - `httpx` 로 `POST :8001/summarize/batch` 호출 모듈
+   - timeout / 실패 시 `summary=None` 채로 응답하는 분기
+5. **상세 API**
+   - `GET /api/news/{id}`
+   - `summary` 온디맨드 분기 + `stat_summary.analyzer` 직접 호출
+   - 응답에 `mention_trend`, `related_keywords` 통합
+6. **프론트 연결**
+   - `newsApi.js` 의 더미 import 제거 + 실 fetch 활성화
+   - `NewsGrid.vue` 의 모달 클릭 시 `fetchNewsById(item.id)` 호출 추가
+   - 카테고리 `전체` 처리는 기존 코드 그대로 사용
+7. **확인 후 정리(선택)**
+   - `dummy_news.json`, 미사용 store/파일 정리
 
 ---
 
@@ -329,4 +405,10 @@ ai-news-summary-service/
   - summarizer: `http://localhost:8001`
 - [x] **`stat_summary` 옵션**: `use_llm=False`, `use_keybert=False` (rule-based, 안정화 후 KeyBERT 확장 검토)
 
-모든 결정 사항 확정됨. 사용자의 코드 작성 신호를 받으면 §5 / §8 / §9 골격대로 바로 코드 진입 가능.
+모든 결정 사항 확정됨. 사용자의 코드 작성 신호를 받으면 §4·§5·§8·§9 골격대로 바로 코드 진입 가능.
+
+### 진입 시 코드 작업 1행 요약
+
+> backend(:8000) 한 개를 새로 만들고, summarizer(:8001) 는 그대로 띄운 뒤,  
+> `/api/categories`, `/api/news`, `/api/news/{id}` 세 엔드포인트가 §4 응답 스키마대로 동작하도록 구현.  
+> 프론트는 `newsApi.js` 활성화 + `NewsGrid.vue` 의 모달 클릭에 `fetchNewsById` 호출만 추가.

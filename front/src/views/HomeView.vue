@@ -8,7 +8,7 @@ import NewsGrid from '@/components/NewsGrid.vue'
 const store = useNewsStore()
 
 onMounted(() => {
-  store.loadNews()
+  store.init()
 })
 </script>
 

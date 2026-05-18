@@ -1,4 +1,6 @@
 <script setup>
+import { formatPublishedDate } from '@/utils/formatPublishedDate'
+
 defineProps({
   news: { type: Object, required: true },
 })
@@ -21,8 +23,7 @@ function getBadgeStyle(cat) {
 }
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr)
-  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`
+  return formatPublishedDate(dateStr)
 }
 </script>
 
@@ -38,7 +39,8 @@ function formatDate(dateStr) {
       <div class="card-text">
         <span class="badge" :style="getBadgeStyle(news.category)">{{ news.category }}</span>
         <h3 class="title">{{ news.title }}</h3>
-        <p class="summary">{{ news.summary }}</p>
+        <p v-if="news.summary && news.summary.trim()" class="summary">{{ news.summary }}</p>
+        <p v-else class="summary summary-muted">카드를 열면 본문으로 AI 요약이 생성됩니다.</p>
       </div>
       <div v-if="news.thumbnail" class="card-thumb">
         <img :src="news.thumbnail" :alt="news.title" />
@@ -128,6 +130,10 @@ function formatDate(dateStr) {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+.summary-muted {
+  color: #9ca3af;
+  font-style: italic;
 }
 
 .meta {

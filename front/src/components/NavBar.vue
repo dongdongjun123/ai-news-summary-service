@@ -40,7 +40,7 @@ const icons = {
         :class="['tab', { active: store.activeCategory === cat }]"
         @click="store.setCategory(cat)"
       >
-        <span class="tab-icon">{{ icons[cat] }}</span>
+        <span class="tab-icon">{{ icons[cat] || '·' }}</span>
         {{ cat }}
       </button>
     </nav>

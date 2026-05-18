@@ -7,11 +7,11 @@ import { RouterView } from 'vue-router'
 </template>
 
 <style>
-/* 전역 리셋 */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
-  background: #f9fafb;
+  font-family: 'Apple SD Gothic Neo', 'Pretendard', 'Noto Sans KR', sans-serif;
+  background: #f7f7fc;
   color: #111827;
+  -webkit-font-smoothing: antialiased;
 }
 </style>

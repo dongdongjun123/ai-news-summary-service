@@ -10,7 +10,7 @@ from app.models.news import NewsArticle
 def list_news(
     db: Session,
     category: Optional[str],
-    limit: int,
+    limit: Optional[int],
 ) -> List[NewsArticle]:
     stmt = select(NewsArticle)
     if category:
@@ -18,7 +18,9 @@ def list_news(
     stmt = stmt.order_by(
         NewsArticle.date.desc(),
         NewsArticle.news_id.desc(),
-    ).limit(limit)
+    )
+    if limit is not None:
+        stmt = stmt.limit(limit)
     return list(db.execute(stmt).scalars().all())
 
 
@@ -52,4 +54,13 @@ def update_summary(db: Session, news_id: str, summary: str) -> None:
     if article is None:
         return
     article.summary = summary
+    db.commit()
+
+
+def clear_summary(db: Session, news_id: str) -> None:
+    """summary 컬럼을 NULL 로 비운다. 재요약 전에 사용."""
+    article = db.get(NewsArticle, news_id)
+    if article is None:
+        return
+    article.summary = None
     db.commit()

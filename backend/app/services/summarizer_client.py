@@ -31,9 +31,16 @@ async def summarize_article(content: str) -> Optional[str]:
     }
 
     try:
+        base = settings.SUMMARIZER_URL.rstrip("/")
+        url = f"{base}/summarize/batch"
+        logger.warning(
+            "[summarizer] → POST %s (content_chars=%d)",
+            url,
+            len(content),
+        )
         async with httpx.AsyncClient(timeout=settings.SUMMARIZER_TIMEOUT) as client:
             response = await client.post(
-                f"{settings.SUMMARIZER_URL}/summarize/batch",
+                url,
                 json=payload,
             )
             response.raise_for_status()
@@ -50,10 +57,15 @@ async def summarize_article(content: str) -> Optional[str]:
 
     summaries = data.get("summaries") or []
     if not summaries:
+        logger.warning("[summarizer] 응답에 summaries 가 비어 있음")
         return None
 
     first = summaries[0] or {}
     summary = first.get("summary")
     if summary and isinstance(summary, str):
-        return summary.strip() or None
+        out = summary.strip()
+        if out:
+            logger.warning("[summarizer] ← 요약 수신 (len=%d)", len(out))
+            return out
+    logger.warning("[summarizer] 첫 요약이 비어 있거나 형식이 아님: %r", summary)
     return None

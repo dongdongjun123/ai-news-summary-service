@@ -1,12 +1,25 @@
 <script setup>
 import { computed } from 'vue'
+import { formatPublishedDate } from '@/utils/formatPublishedDate'
 
 const props = defineProps({
   news: { type: Object, default: null },
 })
 const emit = defineEmits(['close'])
 
-// 주차 레이블 (4주)
+/** 백엔드는 [1주차 … 4주차] 순 길이 4 예상. 비어 있거나 1포인트면 패딩·나눗셈 깨짐 방지 */
+const trendSeries = computed(() => {
+  const raw = props.news?.mention_trend ?? []
+  const data = [...raw].map((v) => {
+    const n = Number(v)
+    return Number.isFinite(n) ? n : 0
+  })
+  if (data.length === 0) return [0, 0, 0, 0]
+  while (data.length < 4) data.unshift(0)
+  return data.slice(0, 4)
+})
+
+// 주차 레이블 (백엔드와 동일하게 4칸 — 데이터보다 레이블이 많으면 잘림)
 const weekLabels = ['1주차', '2주차', '3주차', '4주차']
 
 // SVG 차트 설정
@@ -16,12 +29,13 @@ const padL = 56, padR = 28, padT = 24, padB = 40
 
 const points = computed(() => {
   if (!props.news) return []
-  const data = props.news.mention_trend
+  const data = trendSeries.value
   const maxVal = Math.max(...data)
   const minVal = Math.min(...data)
   const range  = maxVal - minVal || 1
+  const denom = Math.max(1, data.length - 1)
   const xs = data.map((_, i) =>
-    padL + (i / (data.length - 1)) * (chartWidth - padL - padR)
+    padL + (i / denom) * (chartWidth - padL - padR)
   )
   const ys = data.map(v =>
     padT + (1 - (v - minVal) / range) * (chartHeight - padT - padB)
@@ -35,7 +49,7 @@ const polyline = computed(() =>
 
 const yTicks = computed(() => {
   if (!props.news) return []
-  const data = props.news.mention_trend
+  const data = trendSeries.value
   const maxVal = Math.max(...data)
   const minVal = Math.min(...data)
   const mid = Math.round((maxVal + minVal) / 2)
@@ -49,7 +63,7 @@ const yTicks = computed(() => {
 // 가장 많이 언급된 주차 찾기
 const peakWeek = computed(() => {
   if (!props.news) return 0
-  const data = props.news.mention_trend
+  const data = trendSeries.value
   return data.indexOf(Math.max(...data))
 })
 
@@ -74,13 +88,12 @@ const topKeyword = computed(() => props.news?.related_keywords?.[0] ?? '')
 // 중요도 점수 (더미: mention_trend 합산 기반 0~100)
 const importanceScore = computed(() => {
   if (!props.news) return 0
-  const total = props.news.mention_trend.reduce((a, b) => a + b, 0)
+  const total = trendSeries.value.reduce((a, b) => a + b, 0)
   return Math.min(Math.round(total / 120), 100)
 })
 
-function formatDate(dateStr) {
-  const d = new Date(dateStr)
-  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`
+function formatDate(v) {
+  return formatPublishedDate(v)
 }
 
 function onBackdrop(e) {
@@ -127,7 +140,10 @@ function onBackdrop(e) {
                 <span class="chart-unit">단위: 건</span>
               </div>
 
-              <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="chart-svg">
+              <div v-if="trendSeries.every((v) => v === 0)" class="chart-empty-msg">
+                이 기간·카테고리 코퍼스에서 핵심 키워드 언급 추이 데이터가 없습니다.
+              </div>
+              <svg v-else :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="chart-svg">
                 <!-- 그라디언트 정의 -->
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -346,6 +362,13 @@ function onBackdrop(e) {
 .panel-label-row .panel-label { margin-bottom: 0; }
 .panel-icon { font-size: 15px; }
 .chart-unit { font-size: 11px; color: #9ca3af; }
+.chart-empty-msg {
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 24px 8px;
+  text-align: center;
+  line-height: 1.5;
+}
 
 .summary-text {
   font-size: 14px; color: #374151; line-height: 1.9;

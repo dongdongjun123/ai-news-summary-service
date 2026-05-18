@@ -16,6 +16,7 @@ async function openNewsModal(item) {
     selectedNews.value = {
       ...item,
       ...detail,
+      published_at: detail.published_at ?? item.published_at,
       mention_trend: detail.mention_trend ?? [],
       related_keywords: detail.related_keywords ?? [],
     }

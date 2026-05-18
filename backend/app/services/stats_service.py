@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 from app.core.config import settings
 from app.models.news import NewsArticle
+from app.utils.article_dates import resolve_display_date
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,8 @@ def _article_to_dict(article: NewsArticle) -> Dict[str, Any]:
     """stat_summary 에 넘기는 dict 형태. trend_analyzer 가 date/published_at 키를
     참조하므로 'date' 와 'published_at' 둘 다 채워준다.
     """
-    date_str = article.date.isoformat() if article.date else None
+    logical_date = resolve_display_date(article)
+    date_str = logical_date.isoformat()
     return {
         "id": article.news_id,
         "article_id": article.news_id,

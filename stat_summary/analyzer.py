@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from stat_summary.corpus_analyzer import count_keywords_in_corpus
@@ -20,7 +21,7 @@ from stat_summary.model_config import (
 )
 from stat_summary.related_terms import extract_related_terms
 from stat_summary.stat_calculator import count_sentences, count_words
-from stat_summary.trend_analyzer import build_mention_trend
+from stat_summary.trend_analyzer import build_mention_trend_recent_weeks, parse_date
 
 
 def get_keywords(
@@ -105,6 +106,9 @@ def analyze_article_statistics(
         llm_model_name=llm_model_name,
     )
 
+    if not keywords and title.strip():
+        keywords = extract_keywords(title, top_n=top_n)
+
     keyword_count = count_keyword_occurrences(content, keywords)
 
     corpus_keyword_count = count_keywords_in_corpus(
@@ -113,7 +117,14 @@ def analyze_article_statistics(
     )
 
     core_keyword = select_core_keyword(keyword_count)
-    core_word = core_keyword.get("word", "")
+    core_word = core_keyword.get("word", "") or ""
+    if not core_word and keywords:
+        fw = keywords[0]
+        core_word = fw
+        core_keyword = {
+            "word": fw,
+            "score": min(100, 70),
+        }
 
     related_terms, related_terms_model = get_related_terms(
         content=content,
@@ -123,10 +134,14 @@ def analyze_article_statistics(
         embedding_model_name=embedding_model_name,
     )
 
-    mention_trend = build_mention_trend(
+    anchor_raw = article.get("published_at") or article.get("date") or ""
+    anchor_dt = parse_date(anchor_raw) or datetime.now()
+
+    mention_trend = build_mention_trend_recent_weeks(
         corpus_articles=corpus_articles,
         core_keyword=core_word,
-        recent_n=recent_n,
+        anchor=anchor_dt,
+        num_weeks=recent_n,
     )
 
     stat_analysis = generate_stat_analysis(
@@ -158,7 +173,7 @@ def analyze_article_statistics(
         "model_info": {
             "keyword_model": keyword_model,
             "related_terms_model": related_terms_model,
-            "trend_model": "monthly_count_based",
+            "trend_model": "weekly_count_recent_n_before_anchor",
             "insight_model": "rule_based",
         },
     }

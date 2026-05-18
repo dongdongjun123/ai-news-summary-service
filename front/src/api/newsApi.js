@@ -18,6 +18,16 @@ export async function fetchNews() {
 }
 
 /**
+ * DB 카테고리 목록 (프론트 표기명)
+ * GET /api/categories → ["정치","경제",...]
+ */
+export async function fetchCategories() {
+  const res = await fetch(`${BASE_URL}/api/categories`)
+  if (!res.ok) throw new Error('카테고리 목록을 불러오지 못했습니다.')
+  return res.json()
+}
+
+/**
  * 카테고리별 뉴스 필터링
  * GET /api/news?category=정치
  * '전체' 또는 빈 값일 때는 파라미터를 붙이지 않는다.

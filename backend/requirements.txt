@@ -7,8 +7,11 @@ psycopg[binary]>=3.2
 httpx>=0.27
 python-dotenv>=1.0
 
-# AI / Summarizer
+# stat_summary 연관어(KeyBERT)·임베딩 (STATS_USE_KEYBERT 시)
+keybert>=0.8
+sentence-transformers>=3.0
+# 다른 환경과 맞춤 (토크나이저 등)
+sentencepiece>=0.1.99
+accelerate>=0.31
+torch>=2.2
 transformers>=4.40
-torch
-sentencepiece
-accelerate

@@ -1,11 +1,22 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { formatPublishedDate } from '@/utils/formatPublishedDate'
 
 const props = defineProps({
   news: { type: Object, default: null },
 })
 const emit = defineEmits(['close'])
+
+const heroBroken = ref(false)
+
+function thumbUrl(item) {
+  const u = item?.thumbnail
+  return u && String(u).trim() ? String(u).trim() : ''
+}
+
+function onHeroError() {
+  heroBroken.value = true
+}
 
 /** 백엔드는 [1주차 … 4주차] 순 길이 4 예상. 비어 있거나 1포인트면 패딩·나눗셈 깨짐 방지 */
 const trendSeries = computed(() => {
@@ -67,6 +78,25 @@ const peakWeek = computed(() => {
   return data.indexOf(Math.max(...data))
 })
 
+const hasAiSummary = computed(
+  () => Boolean(props.news?.summary && String(props.news.summary).trim()),
+)
+
+const hasTrendData = computed(
+  () => trendSeries.value.some((v) => v > 0),
+)
+
+const hasKeywords = computed(
+  () => (props.news?.related_keywords?.length ?? 0) > 0,
+)
+
+watch(
+  () => props.news?.id,
+  () => {
+    heroBroken.value = false
+  },
+)
+
 const badgeStyle = computed(() => {
   const map = {
     IT과학: { bg: '#eff6ff', text: '#2563eb' },
@@ -120,11 +150,42 @@ function onBackdrop(e) {
 
           <h2 class="modal-title">{{ news.title }}</h2>
 
-          <!-- 스크롤 본문 -->
+          <!-- 헤더·제목 아래: 이미지·본문 함께 스크롤 -->
           <div class="modal-scroll">
 
-            <!-- AI 요약 -->
-            <section class="panel">
+            <section
+              v-if="news.content || (thumbUrl(news) && !heroBroken)"
+              class="panel panel-content"
+            >
+              <div
+                v-if="thumbUrl(news) && !heroBroken"
+                class="article-figure"
+              >
+                <img
+                  :src="thumbUrl(news)"
+                  :alt="news.title"
+                  @error="onHeroError"
+                />
+              </div>
+
+              <template v-if="news.content">
+                <div class="panel-label">본문</div>
+                <p class="content-text">{{ news.content }}</p>
+              </template>
+              <a
+                v-if="news.url"
+                :href="news.url"
+                class="original-link"
+                target="_blank"
+                rel="noopener noreferrer"
+                @click.stop
+              >
+                원문 기사 보기 ↗
+              </a>
+            </section>
+
+            <!-- AI 요약 (ENABLE_AI + DB 요약 있을 때만) -->
+            <section v-if="hasAiSummary" class="panel">
               <div class="panel-label">
                 <span class="panel-icon">🤖</span> AI 요약
               </div>
@@ -132,7 +193,7 @@ function onBackdrop(e) {
             </section>
 
             <!-- 언급량 추이 -->
-            <section class="panel">
+            <section v-if="hasTrendData" class="panel">
               <div class="panel-label-row">
                 <div class="panel-label">
                   <span class="panel-icon">📈</span> 언급량 추이 (최근 4주)
@@ -210,7 +271,7 @@ function onBackdrop(e) {
             </section>
 
             <!-- 연관어 분석 -->
-            <section class="panel">
+            <section v-if="hasKeywords" class="panel">
               <div class="panel-label">
                 <span class="panel-icon">🔗</span> 연관어 분석
               </div>
@@ -291,7 +352,7 @@ function onBackdrop(e) {
   background: #fff;
   border-radius: 20px;
   width: 100%;
-  max-width: 700px;
+  max-width: 760px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
@@ -334,9 +395,28 @@ function onBackdrop(e) {
   word-break: keep-all;
 }
 
+.article-figure {
+  margin-bottom: 18px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+.article-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+  vertical-align: middle;
+}
+
+.panel-content {
+  background: #fff;
+}
+
 .modal-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 20px 28px 28px;
+  padding: 16px 28px 28px;
   display: flex; flex-direction: column; gap: 16px;
 }
 .modal-scroll::-webkit-scrollbar { width: 5px; }
@@ -372,6 +452,27 @@ function onBackdrop(e) {
 
 .summary-text {
   font-size: 14px; color: #374151; line-height: 1.9;
+}
+
+.content-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.original-link {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6366f1;
+  text-decoration: none;
+}
+.original-link:hover {
+  text-decoration: underline;
 }
 
 /* 차트 */

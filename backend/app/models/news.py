@@ -17,3 +17,5 @@ class NewsArticle(Base):
         nullable=False,
     )
     summary = Column(Text)
+    image_url = Column(Text)
+    url = Column(Text)

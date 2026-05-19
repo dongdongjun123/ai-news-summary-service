@@ -18,6 +18,16 @@ export const useNewsStore = defineStore('news', () => {
     () => newsList.value.filter((n) => n.summary && String(n.summary).trim()).length,
   )
 
+  const thumbnailCount = computed(
+    () => newsList.value.filter((n) => n.thumbnail && String(n.thumbnail).trim()).length,
+  )
+
+  const thumbnailPercent = computed(() => {
+    const t = newsList.value.length
+    if (!t) return 0
+    return Math.min(100, Math.round((thumbnailCount.value / t) * 100))
+  })
+
   const summaryProgressPercent = computed(() => {
     const t = newsList.value.length
     if (!t) return 0
@@ -84,6 +94,8 @@ export const useNewsStore = defineStore('news', () => {
     totalCount,
     summarizedCount,
     summaryProgressPercent,
+    thumbnailCount,
+    thumbnailPercent,
     latestPublishedAt,
     setCategory,
     loadNews,

@@ -17,6 +17,8 @@ async function openNewsModal(item) {
       ...item,
       ...detail,
       published_at: detail.published_at ?? item.published_at,
+      thumbnail: detail.thumbnail ?? item.thumbnail,
+      url: detail.url ?? item.url,
       mention_trend: detail.mention_trend ?? [],
       related_keywords: detail.related_keywords ?? [],
     }
@@ -37,7 +39,7 @@ async function openNewsModal(item) {
     <div class="section-header">
       <div class="section-title">
         <span class="title-bar"></span>
-        최신 AI 요약 뉴스
+        최신 뉴스
       </div>
       <button class="refresh-btn" @click="store.loadNews()">
         🔄 새로고침

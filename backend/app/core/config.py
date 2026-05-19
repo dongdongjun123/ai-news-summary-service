@@ -39,11 +39,17 @@ def _parse_cors_origins(raw: str) -> List[str]:
 
 
 class Settings(BaseSettings):
+    # Neon 등 클라우드: 대시보드 Connection string 을 그대로 넣으면 DB_* 보다 우선
+    # 예) postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+    DATABASE_URL: str = ""
+
     DB_HOST: str = "127.0.0.1"
     DB_PORT: int = 5432
     DB_NAME: str = "postgres"
     DB_USER: str = "postgres"
     DB_PASSWORD: str = ""
+    # Neon / 대부분의 클라우드 Postgres 는 require. 로컬 Docker·pgAdmin 은 보통 비움
+    DB_SSLMODE: str = ""
     DB_CONNECT_TIMEOUT: int = 5
 
     # localhost 는 Windows에서 [::1] 로 붙어 summarizer 가 127.0.0.1 만 열어둔 경우 실패함
@@ -78,6 +84,9 @@ class Settings(BaseSettings):
     # True: date 컬럼 불신 시 본문/ID 로 보조 날짜
     DISPLAY_DATE_FALLBACK: bool = False
 
+    # false: 요약(summarizer)·언급량/연관어(stat_summary) 호출 안 함 — DB 조회만
+    ENABLE_AI: bool = False
+
     model_config = SettingsConfigDict(
         env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
@@ -89,15 +98,32 @@ class Settings(BaseSettings):
     def cors_origins(self) -> List[str]:
         return _parse_cors_origins(self.CORS_ORIGINS)
 
+    @staticmethod
+    def _normalize_database_url(raw: str) -> str:
+        """Neon connection string → SQLAlchemy + psycopg3 형식."""
+        url = raw.strip()
+        if url.startswith("postgres://"):
+            url = "postgresql+psycopg://" + url[len("postgres://") :]
+        elif url.startswith("postgresql://") and "+psycopg" not in url.split("://", 1)[0]:
+            url = "postgresql+psycopg://" + url[len("postgresql://") :]
+        return url
+
     @property
     def database_url(self) -> str:
         from urllib.parse import quote_plus
 
-        return (
+        if self.DATABASE_URL.strip():
+            return self._normalize_database_url(self.DATABASE_URL)
+
+        base = (
             f"postgresql+psycopg://"
             f"{quote_plus(self.DB_USER)}:{quote_plus(self.DB_PASSWORD)}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
+        if self.DB_SSLMODE.strip():
+            sep = "&" if "?" in base else "?"
+            return f"{base}{sep}sslmode={quote_plus(self.DB_SSLMODE.strip())}"
+        return base
 
 
 settings = Settings()
@@ -118,10 +144,11 @@ logger.warning(
     settings.DB_NAME,
 )
 
-if not settings.DB_PASSWORD:
+if not settings.DATABASE_URL.strip() and not settings.DB_PASSWORD:
     logger.error(
-        "[backend] DB_PASSWORD 가 비어 있습니다. backend/.env 의 DB_PASSWORD 를 확인하세요."
+        "[backend] DB_PASSWORD 가 비어 있습니다. Neon 이면 DATABASE_URL 또는 backend/.env 를 확인하세요."
     )
 
 logger.warning("[backend] SUMMARIZER_URL=%s", settings.SUMMARIZER_URL)
 logger.warning("[backend] DISPLAY_DATE_FALLBACK=%s", settings.DISPLAY_DATE_FALLBACK)
+logger.warning("[backend] ENABLE_AI=%s", settings.ENABLE_AI)

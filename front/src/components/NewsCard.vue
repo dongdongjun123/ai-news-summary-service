@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { formatPublishedDate } from '@/utils/formatPublishedDate'
 
 defineProps({
@@ -25,6 +26,17 @@ function getBadgeStyle(cat) {
 function formatDate(dateStr) {
   return formatPublishedDate(dateStr)
 }
+
+function thumbUrl(news) {
+  const u = news?.thumbnail
+  return u && String(u).trim() ? String(u).trim() : ''
+}
+
+const brokenThumb = ref(false)
+
+function onThumbError() {
+  brokenThumb.value = true
+}
 </script>
 
 <template>
@@ -40,10 +52,14 @@ function formatDate(dateStr) {
         <span class="badge" :style="getBadgeStyle(news.category)">{{ news.category }}</span>
         <h3 class="title">{{ news.title }}</h3>
         <p v-if="news.summary && news.summary.trim()" class="summary">{{ news.summary }}</p>
-        <p v-else class="summary summary-muted">카드를 열면 본문으로 AI 요약이 생성됩니다.</p>
       </div>
-      <div v-if="news.thumbnail" class="card-thumb">
-        <img :src="news.thumbnail" :alt="news.title" />
+      <div v-if="thumbUrl(news) && !brokenThumb" class="card-thumb">
+        <img
+          :src="thumbUrl(news)"
+          :alt="news.title"
+          loading="lazy"
+          @error="onThumbError"
+        />
       </div>
     </div>
 
@@ -130,10 +146,6 @@ function formatDate(dateStr) {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-.summary-muted {
-  color: #9ca3af;
-  font-style: italic;
 }
 
 .meta {

@@ -7,7 +7,7 @@ const store = useNewsStore()
 
 const ringCirc = 2 * Math.PI * 26
 const ringDashOffset = computed(
-  () => ringCirc * (1 - store.summaryProgressPercent / 100),
+  () => ringCirc * (1 - store.thumbnailPercent / 100),
 )
 
 const latestPublishedLabel = computed(() =>
@@ -43,14 +43,14 @@ const listRefreshedLabel = computed(() => {
       </div>
     </div>
 
-    <!-- DB 요약 필드 존재 비율 (목록 기준) -->
+    <!-- 썸네일(image_url) 보유 -->
     <div class="stat-card card-purple">
       <div class="card-inner">
-        <div class="stat-icon">✨</div>
+        <div class="stat-icon">🖼️</div>
         <div class="stat-info">
-          <div class="stat-label">DB 요약 보유</div>
-          <div class="stat-value">{{ store.summarizedCount }}</div>
-          <div class="stat-sub">표시 목록 중 비율 {{ store.summaryProgressPercent }}%</div>
+          <div class="stat-label">이미지 있는 기사</div>
+          <div class="stat-value">{{ store.thumbnailCount }}</div>
+          <div class="stat-sub">표시 목록 중 비율 {{ store.thumbnailPercent }}%</div>
         </div>
         <div class="ring-wrap">
           <svg width="64" height="64" viewBox="0 0 64 64">
@@ -81,7 +81,7 @@ const listRefreshedLabel = computed(() => {
               font-size="11"
               font-weight="700"
               fill="#fff"
-            >{{ store.summaryProgressPercent }}%</text>
+            >{{ store.thumbnailPercent }}%</text>
           </svg>
         </div>
       </div>
